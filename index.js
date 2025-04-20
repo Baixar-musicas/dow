@@ -1,51 +1,54 @@
-const express = require('express');
-const cors = require('cors'); // ✅ importa o cors
-const fetch = require('node-fetch');
-const FormData = require('form-data');
-require('dotenv').config();
+const express = require("express");
+const fetch = require("node-fetch");
+const FormData = require("form-data");
+const cors = require("cors");
+const multer = require("multer");
+require("dotenv").config();
 
 const app = express();
-
-// ✅ ATIVA CORS para o seu domínio
-app.use(cors({
-  origin: 'https://conversormp3.online'
-}));
-
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-app.post('/convert', async (req, res) => {
-  const { filename, format } = req.body;
+const upload = multer({ storage: multer.memoryStorage() });
 
+app.post("/convert", upload.single("file"), async (req, res) => {
   try {
-    const jobRes = await fetch('https://api.cloudconvert.com/v2/jobs', {
-      method: 'POST',
+    const fileBuffer = req.file.buffer;
+    const filename = req.file.originalname;
+    const format = req.body.format;
+
+    const inputFormat = filename.split('.').pop();
+
+    const form = new FormData();
+    form.append("file", fileBuffer, filename);
+
+    const jobResponse = await fetch("https://api.cloudconvert.com/v2/jobs", {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.CLOUDCONVERT_API_KEY}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         tasks: {
-          import: { operation: 'import/upload' },
+          import: { operation: "import/upload" },
           convert: {
-            operation: 'convert',
-            input: 'import',
-            input_format: filename.split('.').pop(),
+            operation: "convert",
+            input: "import",
+            input_format: inputFormat,
             output_format: format
           },
-          export: { operation: 'export/url', input: 'convert' }
+          export: { operation: "export/url", input: "convert" }
         }
-      }),
+      })
     });
 
-    const job = await jobRes.json();
+    const job = await jobResponse.json();
     res.json(job);
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erro na conversão' });
+  } catch (error) {
+    console.error("Erro ao processar conversão:", error);
+    res.status(500).json({ error: "Erro ao processar conversão." });
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log("Servidor rodando na porta", PORT));
