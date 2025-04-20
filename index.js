@@ -14,8 +14,9 @@ const upload = multer({ storage: multer.memoryStorage() });
 app.post("/convert", upload.single("file"), async (req, res) => {
   try {
     if (!req.file || !req.body.format) {
-      return res.status(400).json({ error: "Arquivo ou formato ausente." });
-    }
+  return res.status(400).json({ error: "Arquivo ou formato ausente." });
+}
+
 
     const fileBuffer = req.file.buffer;
     const filename = req.file.originalname;
