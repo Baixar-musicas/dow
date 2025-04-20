@@ -1,9 +1,11 @@
-
 const express = require('express');
 const fetch = require('node-fetch');
 const FormData = require('form-data');
 require('dotenv').config();
+const cors = require('cors');
+
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 app.post('/convert', async (req, res) => {
@@ -30,7 +32,10 @@ app.post('/convert', async (req, res) => {
   });
 
   const job = await jobRes.json();
-  res.json(job);
+  const exportTask = job.data.tasks.find(task => task.name === 'export');
+  const downloadUrl = exportTask?.result?.files?.[0]?.url;
+
+  res.json({ downloadUrl });
 });
 
 const PORT = process.env.PORT || 3000;
