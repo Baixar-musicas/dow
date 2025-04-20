@@ -1,12 +1,16 @@
 const express = require('express');
-const cors = require('cors'); // ✅ aqui
-
+const cors = require('cors'); // ✅ IMPORTA O CORS
 const fetch = require('node-fetch');
 const FormData = require('form-data');
 require('dotenv').config();
 
 const app = express();
-app.use(cors()); // ✅ aqui libera CORS para qualquer domínio
+
+// ✅ ATIVA CORS PARA O SEU DOMÍNIO
+app.use(cors({
+  origin: 'https://conversormp3.online'
+}));
+
 app.use(express.json());
 
 app.post('/convert', async (req, res) => {
@@ -33,10 +37,7 @@ app.post('/convert', async (req, res) => {
   });
 
   const job = await jobRes.json();
-  const exportTask = job.data.tasks.find(task => task.name === 'export');
-  const downloadUrl = exportTask?.result?.files?.[0]?.url;
-
-  res.json({ downloadUrl });
+  res.json(job);
 });
 
 const PORT = process.env.PORT || 3000;
