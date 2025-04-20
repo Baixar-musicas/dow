@@ -1,11 +1,12 @@
 const express = require('express');
+const cors = require('cors'); // ✅ aqui
+
 const fetch = require('node-fetch');
 const FormData = require('form-data');
 require('dotenv').config();
-const cors = require('cors');
 
 const app = express();
-app.use(cors());
+app.use(cors()); // ✅ aqui libera CORS para qualquer domínio
 app.use(express.json());
 
 app.post('/convert', async (req, res) => {
