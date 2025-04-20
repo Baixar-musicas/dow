@@ -13,10 +13,13 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 app.post("/convert", upload.single("file"), async (req, res) => {
   try {
+    if (!req.file || !req.body.format) {
+      return res.status(400).json({ error: "Arquivo ou formato ausente." });
+    }
+
     const fileBuffer = req.file.buffer;
     const filename = req.file.originalname;
     const format = req.body.format;
-
     const inputFormat = filename.split('.').pop();
 
     const form = new FormData();
@@ -43,12 +46,14 @@ app.post("/convert", upload.single("file"), async (req, res) => {
     });
 
     const job = await jobResponse.json();
-    res.json(job);
-  } catch (error) {
-    console.error("Erro ao processar conversão:", error);
+    res.json(job); // Aqui você pode adaptar pra retornar só o link
+  } catch (err) {
+    console.error("Erro:", err);
     res.status(500).json({ error: "Erro ao processar conversão." });
   }
 });
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log("Servidor rodando na porta", PORT));
+app.listen(PORT, () => {
+  console.log("Servidor rodando na porta", PORT);
+});
